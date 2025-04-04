@@ -1,0 +1,25 @@
+[project]
+name = "flourishing-network"
+version = "0.1.0"
+description = "Network analysis for openflourishing.org"
+authors = [
+    {name = "pythoro",email = "pythoro@mindquip.com"}
+]
+license = {text = "MIT"}
+readme = "README.md"
+requires-python = ">=3.9"
+dependencies = [
+    "numpy (>=2.2.4,<3.0.0)",
+    "pandas (>=2.2.3,<3.0.0)",
+    "networkx (>=3.4.2,<4.0.0)"
+]
+
+[tool.poetry]
+
+[tool.poetry.group.dev.dependencies]
+sphinx = "^8.2.3"
+bump2version = "^1.0.1"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
