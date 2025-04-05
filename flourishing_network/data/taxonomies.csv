@@ -1,27 +1,34 @@
 ﻿Submission ID,Category,Term
-1,,Happiness
-1,,Vitality
-1,,Calmness
-1,,Optimism
-1,,Involvement
-1,,Self-awareness
-1,,Self-acceptance
-1,,Self-worth
-1,,Competence
-1,,Development
-1,,Purpose
-1,,Significance
-1,,Congruence
-1,,Connection
-2,Relationship,Relatedness
-2,Relationship,Positive relations
-2,Relationship,Relationship
-2,Relationship,Support
-2,Relationship,Community
-2,Relationship,Trust
-2,Relationship,Respect
-2,Relationship,Loneliness*
-2,Relationship,Belonging
+1,General well-being,Happiness
+1,General well-being,Vitality
+1,General well-being,Calmness
+1,General well-being,Optimism
+1,General well-being,Involvement
+1,General well-being,Self-awareness
+1,General well-being,Self-acceptance
+1,General well-being,Self-worth
+1,General well-being,Competence
+1,General well-being,Development
+1,General well-being,Purpose
+1,General well-being,Significance
+1,General well-being,Congruence
+1,General well-being,Connection
+2,Thriving,Relationships
+2,Thriving,Engagement
+2,Thriving,Mastery
+2,Thriving,Autonomy
+2,Thriving,Meaning
+2,Thriving,Optimism
+2,Thriving,Subjective well-being
+2,Relationships,Relatedness
+2,Relationships,Positive relations
+2,Relationships,Relationship
+2,Relationships,Support
+2,Relationships,Community
+2,Relationships,Trust
+2,Relationships,Respect
+2,Relationships,Loneliness*
+2,Relationships,Belonging
 2,Engagement,Flow
 2,Mastery,Skills
 2,Mastery,Learning
@@ -38,25 +45,28 @@
 2,Subjective well-being,Life satisfaction
 2,Subjective well-being,Positive feelings
 2,Subjective well-being,Negative feelings*
-3,,Meaning
-3,,Relationships
-3,,Engagement
-3,,Competence
-3,,Self-esteem
-3,,Optimism
-4,,Ideal life
-4,,Good life conditions
-4,,Life satisfaction
-4,,Achievement
-4,,Regret*
-5,,Happiness
-5,,Life satisfaction
-5,,Health
-5,,Meaning
-5,,Character
-5,,Social relationships
-5,,Financial stability
-5,,Material stability
+3,Life satisfaction,Meaning
+3,Well-being,Relationships
+3,Well-being,Engagement
+3,Well-being,Competence
+3,Well-being,Self-esteem
+3,Well-being,Optimism
+4,Life satisfaction,Ideal life
+4,Life satisfaction,Good life conditions
+4,Life satisfaction,Life satisfaction
+4,Life satisfaction,Achievement
+4,Life satisfaction,Regret*
+5,Flourishing,Happiness
+5,Flourishing,Life satisfaction
+5,Flourishing,Health
+5,Flourishing,Meaning
+5,Flourishing,Character
+5,Flourishing,Social relationships
+5,Flourishing,Financial stability
+5,Flourishing,Material stability
+6,Well-being,Positive characteristics
+6,Well-being,Positive functioning
+6,Well-being,Positive appraisal
 6,Positive characteristics,Emotional stability
 6,Positive characteristics,Vitality
 6,Positive characteristics,Resilience
@@ -68,39 +78,48 @@
 6,Positive functioning,Positive relationships
 6,Positive appraisal,Life satisfaction
 6,Positive appraisal,Positive emotion
-7,Positive emotion,Positive emotion
-7,Life satisfaction,Life satisfaction
-7,Self-acceptance,Self-acceptance
+7,Complete health,Positive emotion
+7,Complete health,Life satisfaction
+7,Complete health,Self-acceptance
+7,Complete health,Relationships
+7,Complete health,Personal growth
+7,Complete health,Hope
+7,Complete health,Meaning
+7,Complete health,Environmental mastery
+7,Complete health,Relationships
+7,Complete health,Autonomy
 7,Relationships,Social acceptance
-7,Personal growth,Personal growth
 7,Hope,Self-actualisation
 7,Meaning,Purpose
 7,Meaning,Social contribution
-7,Environmental mastery,Environmental mastery
 7,Relationships,Social coherence
 7,Relationships,Positive relationships
 7,Relationships,Social integration
-7,Autonomy,Autonomy
-8,,Health
-8,,Knowledge
-8,,Skills
-8,,Cultural capability
-8,,Belonging
-8,,Work
-8,,Care
-8,,Volunteering
-8,,Engagement
-8,,Voice
-8,,Income
-8,,Consumption
-8,,Wealth
-8,,Housing
-8,,Environmental amenity
-8,,Leisure
-8,,Play
-8,,Family
-8,,Friends
-8,,Subjective well-being
+8,Living standards,Health
+8,Living standards,Knowledge
+8,Living standards,Skills
+8,Living standards,Cultural capability
+8,Living standards,Belonging
+8,Living standards,Work
+8,Living standards,Care
+8,Living standards,Volunteering
+8,Living standards,Engagement
+8,Living standards,Voice
+8,Living standards,Income
+8,Living standards,Consumption
+8,Living standards,Wealth
+8,Living standards,Housing
+8,Living standards,Environmental amenity
+8,Living standards,Leisure
+8,Living standards,Play
+8,Living standards,Family
+8,Living standards,Friends
+8,Living standards,Subjective well-being
+9,Mental health,Protection
+9,Mental health,Growth
+9,Mental health,Connection
+9,Mental health,Work-life harmony
+9,Mental health,Mattering
 9,Protection,Safety
 9,Protection,Security
 9,Growth,Learning
@@ -112,10 +131,14 @@
 9,Work-life harmony,Flexibility
 9,Mattering,Dignity
 9,Mattering,Meaning
+10,Well-being,Emotional well-being
+10,Well-being,Life satisfaction
+10,Well-being,Vitality
+10,Well-being,Resilience
+10,Well-being,Positive functioning
+10,Well-being,Social well-being
 10,Emotional well-being,Positive feelings
 10,Emotional well-being,Negative feelings*
-10,Life satisfaction,Life satisfaction
-10,Vitality,Vitality
 10,Resilience,Self-esteem
 10,Resilience,Optimism
 10,Positive functioning,Competence
@@ -126,22 +149,30 @@
 10,Social well-being,Supportive relationships
 10,Social well-being,Trust
 10,Social well-being,Belonging
-11,,Positive emotion
-11,,Engagement
-11,,Relationships
-11,,Meaning
-11,,Accomplishment
-12,,Autonomy
-12,,Environmental mastery
-12,,Personal growth
-12,,Positive relations
-12,,Purpose
-12,,Self-acceptance
-13,,Autonomy
-13,,Competence
-13,,Relatedness
-14,,Positive emotion
-14,,Negative emotion
+11,Well-being,Positive emotion
+11,Well-being,Engagement
+11,Well-being,Relationships
+11,Well-being,Meaning
+11,Well-being,Accomplishment
+12,Psychological well-being,Autonomy
+12,Psychological well-being,Environmental mastery
+12,Psychological well-being,Personal growth
+12,Psychological well-being,Positive relations
+12,Psychological well-being,Purpose
+12,Psychological well-being,Self-acceptance
+13,Psychological well-being,Autonomy
+13,Psychological well-being,Competence
+13,Psychological well-being,Relatedness
+14,Psychological well-being,Positive emotion
+14,Psychological well-being,Negative emotion*
+15,Flourishing,Vitality
+15,Flourishing,Engagement
+15,Flourishing,Autonomy
+15,Flourishing,Hope
+15,Flourishing,Competence
+15,Flourishing,Meaning
+15,Flourishing,Belonging
+15,Flourishing,Family
 15,Vitality,Energy
 15,Vitality,Physical flexibility
 15,Vitality,Physiological health
