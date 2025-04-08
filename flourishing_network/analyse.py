@@ -49,6 +49,7 @@ def analyse(df):
     return terms, links
 
 def analyse_relationships(df):
+    """These need to be added with different logic."""
     terms = set()
     links = []
     for index, row in df.iterrows():
@@ -56,7 +57,8 @@ def analyse_relationships(df):
             subset = set([row['Term']])
             others = row['Other terms'].split(',')
             others = set([o.strip(' ') for o in others])
-            subset = subset.union(others)
+            subset.update(others)
+            terms.update(others)
             links.append({"subset": subset, "category": None})
     return terms, links
 
@@ -177,8 +179,8 @@ def run():
     df_rel = get_df_rel()
     terms, links = analyse(df)
     terms_rel, links_rel = analyse_relationships(df_rel)
-    terms = terms.union(terms_rel)
-    links.extend(links_rel)
+    terms.update(terms_rel)  # No add with different logic
+    links.extend(links_rel)  # No add with different logic
     remove_stopwords(terms, links)
     nodes, edges = create_network_data(terms, links)
     G = create_networkx_graph(nodes, edges)
