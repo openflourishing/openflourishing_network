@@ -1,1 +1,1 @@
-from . import analyse
+from . import core

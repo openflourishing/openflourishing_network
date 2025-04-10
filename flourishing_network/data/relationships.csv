@@ -1,24 +1,24 @@
-﻿Submission ID,Term,Relationship,Other terms
-18,General well-being,related to,Well-being
-18,Relationships,related to,"Relationships, Support, Social support, Supportive relationships, Satisfying interpersonal relationships"
-18,Belonging,related to,"Social belonging, Social integration, Relationships, Sense of community, Social integration"
-18,Relationships,related to,"Positive relations, Connection, Positive relationships, Social integration, Friends, Popularity, Prosocial coping, Personal relationships"
-18,Negative emotion*,related to,Negative feelings*
-18,Positive emotion,related to,Positive feelings
-18,Personal development,related to,"Development, Personal growth, Perceived development of best potentials"
-18,Engagement,related to,"Involvement in activities, Enjoyment of activities, Fun"
-18,Purpose,related to,Investment of effort
-18,Coping,related to,"Not coping*, General coping, Prosocial coping, Coping self, Detatched coping*, Active coping, Confrontative coping, Coping self, Self-reliant coping, Supportant coping, Religious coping, Resilient coping, Approach coping, Adaptive coping, Emotive coping, Emotional coping, Optimistic coping, Fatalistic coping*, Problem-focused coping, Emotion-focused coping, Emotion-focused approach coping, Problem-focused approach coping, Avoidance coping*"
-18,Self-worth,related to,Own worth
-18,Hope,related to,"Positive expectancy, Future life satisfaction, Pathways, Agency, Anticipation"
-18,Health,related to,Health status
-18,Purpose,related to,Life purpose
-18,Meaning,related to,"Influence, Meaning making, Social contribution"
-18,Resources,related to,Personal resources
-18,Positive experiences,related to,"Positive emotions, positive affect, Positive feelings"
-18,Negative experiences*,related to,"Negative feelings*, Negative affect*, Negative emotions*"
-18,Mastery,related to,Sense of mastery
-18,Self-efficacy,related to,General self-efficacy
-18,Resilience,related to,Bounce back
-18,Positive reappraisal,related to,Positive reinterpretation
-18,Love,related to,Family
+﻿Submission ID,Parent,Relationship,Other terms
+18,General well-being,Similar,Well-being
+18,Relationships,Similar,"Relationships, Support, Social support, Supportive relationships, Satisfying interpersonal relationships"
+18,Belonging,Similar,"Social belonging, Social integration, Relationships, Sense of community, Social integration"
+18,Relationships,Similar,"Positive relations, Connection, Positive relationships, Social integration, Friends, Popularity, Prosocial coping, Personal relationships"
+18,Negative emotion*,Similar,Negative feelings*
+18,Positive emotion,Similar,Positive feelings
+18,Personal development,Similar,"Development, Personal growth, Perceived development of best potentials"
+18,Engagement,Similar,"Involvement in activities, Enjoyment of activities, Fun"
+18,Purpose,Similar,Investment of effort
+18,Coping,Similar,"Not coping*, General coping, Prosocial coping, Coping self, Detatched coping*, Active coping, Confrontative coping, Coping self, Self-reliant coping, Supportant coping, Religious coping, Resilient coping, Approach coping, Adaptive coping, Emotive coping, Emotional coping, Optimistic coping, Fatalistic coping*, Problem-focused coping, Emotion-focused coping, Emotion-focused approach coping, Problem-focused approach coping, Avoidance coping*"
+18,Self-worth,Similar,Own worth
+18,Hope,Similar,"Positive expectancy, Future life satisfaction, Pathways, Agency, Anticipation"
+18,Health,Similar,Health status
+18,Purpose,Similar,Life purpose
+18,Meaning,Similar,"Influence, Meaning making, Social contribution"
+18,Resources,Similar,Personal resources
+18,Positive experiences,Similar,"Positive emotions, positive affect, Positive feelings"
+18,Negative experiences*,Similar,"Negative feelings*, Negative affect*, Negative emotions*"
+18,Mastery,Similar,Sense of mastery
+18,Self-efficacy,Similar,General self-efficacy
+18,Resilience,Similar,Bounce back
+18,Positive reappraisal,Similar,Positive reinterpretation
+18,Love,Similar,Family
