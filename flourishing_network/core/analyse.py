@@ -1,5 +1,7 @@
 """Main openflourishing.org network analysis."""
 
+from __future__ import annotations
+
 import itertools
 import json
 import json.tool
@@ -53,6 +55,13 @@ def not_na(value: float) -> bool:
     return value
 
 
+def get_stopwords():
+    root = Path(__file__).parent.parent
+    fname = root / "data" / "stopwords.json"
+    with open(fname) as f:
+        stopwords = json.load(f)
+    return stopwords
+
 def remove_stopwords(terms: set, links: list[dict]) -> None:
     """Remove stopwords in terms and links.
 
@@ -60,10 +69,7 @@ def remove_stopwords(terms: set, links: list[dict]) -> None:
         terms (set): The set of terms.
         links (list[dict]): The list of link dictionaries.
     """
-    root = Path(__file__).parent.parent
-    fname = root / "data" / "stopwords.json"
-    with open(fname) as f:
-        stopwords = json.load(f)
+    stopwords = get_stopwords()
     terms.difference_update(stopwords)
     for dct in links:
         if dct["parent"] in stopwords:
@@ -104,10 +110,11 @@ def create_network_data(terms: set, links: list[dict]) -> tuple[dict, dict]:
     """
     nodes = {t: i + 1 for i, t in enumerate(terms)}
     edges = {}
+    stopwords = get_stopwords()
     for dct in links:
         linked = dct["linked"]
         parent = dct["parent"]
-        if parent is not None:
+        if parent is not None and parent not in stopwords:
             for term in linked:
                 _add_edge(
                     edges, nodes[parent], nodes[term], 20.0 / len(linked)
@@ -117,9 +124,9 @@ def create_network_data(terms: set, links: list[dict]) -> tuple[dict, dict]:
             _add_edge(
                 edges, nodes[source], nodes[target], 10 / len(combinations)
             )
-    combinations = itertools.combinations(terms, 2)
-    for source, target in combinations:
-        _add_edge(edges, nodes[source], nodes[target], 0.05)
+    # combinations = itertools.combinations(terms, 2)
+    # for source, target in combinations:
+    #     _add_edge(edges, nodes[source], nodes[target], 0.01)
     return nodes, edges
 
 
@@ -197,7 +204,7 @@ def create_networkx_graph(nodes: dict, edges: dict) -> nx.Graph:
         node_data.append((i, {"term": term}))
     G.add_nodes_from(node_data)
     edge_data = []
-    for i, ((source, target), weight) in enumerate(edges.items()):
+    for (source, target), weight in edges.items():
         edge_data.append((source, target, {"weight": weight}))
     G.add_edges_from(edge_data)
     degree_view = G.degree(weight="weight")
@@ -247,11 +254,13 @@ def write_json(G: nx.Graph) -> None:
         json.dump(dct, f, indent=4)
 
 
+
 def run() -> None:
     """Run the analysis."""
     root = Path(__file__).parent.parent
     fname = root / "data" / "links.csv"
     links = convert.csv_to_links(fname)
+    links = convert.clean_link_terms(links)
     terms = convert.links_to_terms(links)
     remove_stopwords(terms, links)
     nodes, edges = create_network_data(terms, links)

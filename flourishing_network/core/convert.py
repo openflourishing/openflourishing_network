@@ -126,3 +126,26 @@ def links_to_json(links: list[dict], fname: str) -> None:
     """
     with open(fname, "w") as f:
         json.dump(links, f, cls=SetEncoder)
+
+
+def clean_term(term: str) -> str:
+    term = term.lower()
+    term = term.replace('well-being', 'wellbeing')
+    term = term.capitalize()
+    return term
+
+
+def clean_link_terms(links: list[dict]) -> list[dict]:
+    """Make all terms in links title case."""
+    out_links = []
+    for link in links:
+        dct = {}
+        for key, val in link.items():
+            if key == 'linked':
+                dct[key] = set([clean_term(t) for t in val])
+            elif key == 'parent':
+                dct[key] = None if val is None else clean_term(val)
+            else:
+                dct[key] = val
+        out_links.append(dct)
+    return out_links
