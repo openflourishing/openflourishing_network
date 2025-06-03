@@ -2,38 +2,32 @@
 name = "flourishing-network"
 version = "0.1.0"
 description = "Network analysis for openflourishing.org"
-authors = [
-    {name = "pythoro",email = "pythoro@mindquip.com"}
-]
-license = {text = "MIT"}
-readme = "README.md"
+authors = [{ name = "pythoro", email = "pythoro@mindquip.com" }]
 requires-python = ">=3.9"
+readme = "README.md"
+license = { text = "MIT" }
 dependencies = [
-    "numpy (>=2.0.0,<3.0.0)",
-    "pandas (>=2.0.0,<3.0.0)",
-    "networkx (>=3.2.*,<4.0.0)"
+    "numpy (>=2.0.0)",
+    "pandas (>=2.0.0)",
+    "networkx (>=3.2.0)",
 ]
-packages = [
-    { include = "flourishing_network"},
+packages = [{ include = "flourishing_network" }]
+
+[dependency-groups]
+dev = [
+    "sphinx>=7.2.3",
+    "sphinx-rtd-theme>=2.0.0",
+    "sphinxcontrib-svg2pdfconverter>=1.2.2",
+    "cairosvg>=2.7.1",
+    "bump2version>=1.0.1",
+    "ruff>=0.11.2",
+    "pre-commit>=3.7.0",
+    "coverage>=7.5.0",
 ]
-
-[tool.poetry]
-
-[tool.poetry.group.dev.dependencies]
-sphinx = "^7.2.3"
-sphinx-rtd-theme = "^2.0.0"
-sphinxcontrib-svg2pdfconverter = "^1.2.2"
-cairosvg = "^2.7.1"
-bump2version = "^1.0.1"
-ruff = "^0.4.1"
-pre-commit = "^3.7.0"
-coverage = "^7.5.0"
-
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
-
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.ruff]
 # Needed for discovery
