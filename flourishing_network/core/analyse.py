@@ -237,7 +237,7 @@ def G_to_dict(G: nx.Graph) -> dict:
     Args:
         G (nx.Graph): The network.
     """
-    return nx.readwrite.json_graph.node_link_data(G)
+    return nx.readwrite.json_graph.node_link_data(G, edges="links")
 
 
 def write_json(G: nx.Graph) -> None:
