@@ -48,7 +48,7 @@ def default_link(submission_id: int, parent: int | None) -> dict:
     return link
 
 
-def not_na(value: float) -> bool:
+def not_na(value: float) -> float | None:
     """Check for NA values."""
     if pd.isna(value):
         return None
@@ -77,7 +77,7 @@ def remove_stopwords(terms: set, links: list[dict]) -> None:
         dct["linked"].difference_update(stopwords)
 
 
-def _add_edge(edges: dict[tuple[int, int]: float],
+def _add_edge(edges: dict[tuple[int, int], float],
               source: int, target: int, weight: float) -> None:
     """Add an edge.
 
@@ -108,25 +108,32 @@ def create_network_data(terms: set, links: list[dict]) -> tuple[dict, dict]:
             - edges (dict): Dictionary of edges keyed by (source, target)
                 tuples, with weights as values.
     """
-    nodes = {t: i + 1 for i, t in enumerate(terms)}
+    nodes = {t: {'term': t, "index": i + 1, "submissions": set()} for i, t in enumerate(terms)}
     edges = {}
     stopwords = get_stopwords()
     for dct in links:
         linked = dct["linked"]
         parent = dct["parent"]
+        submission_id = str(dct['submission_id'])
         if parent is not None and parent not in stopwords:
             for term in linked:
                 _add_edge(
-                    edges, nodes[parent], nodes[term], 20.0 / len(linked)
+                    edges, nodes[parent]['index'], nodes[term]['index'], 20.0 / len(linked)
                 )
+                nodes[term]['submissions'].add(submission_id)
         combinations = list(itertools.combinations(linked, 2))
         for source, target in combinations:
             _add_edge(
-                edges, nodes[source], nodes[target], 10 / len(combinations)
+                edges, nodes[source]['index'], nodes[target]['index'], 10 / len(combinations)
             )
+            nodes[source]['submissions'].add(submission_id)
+            nodes[target]['submissions'].add(submission_id)
+        
     # combinations = itertools.combinations(terms, 2)
     # for source, target in combinations:
     #     _add_edge(edges, nodes[source], nodes[target], 0.01)
+    for node_dct in nodes.values():
+        node_dct['submissions'] = ';'.join(node_dct['submissions'])
     return nodes, edges
 
 
@@ -178,7 +185,7 @@ def create_csvs(G: nx.Graph) -> None:
     """
     nodes_df = make_nodes_df(G)
     edges_df = make_edges_df(G)
-    output_dir = Path.cwd()
+    output_dir = Path.cwd() / 'output'
     timestamp = datetime.now().strftime("%Y-%m-%d-%H%M")
     fname = output_dir / f"openflourishing_{timestamp}_csv_nodes.csv"
     nodes_df.to_csv(fname, index=None)
@@ -200,8 +207,9 @@ def create_networkx_graph(nodes: dict, edges: dict) -> nx.Graph:
     """
     G = nx.Graph()
     node_data = []
-    for term, i in nodes.items():
-        node_data.append((i, {"term": term}))
+    for term, node_dct in nodes.items():
+        ndct = {"term": term, "submissions": node_dct['submissions']}
+        node_data.append((node_dct['index'], ndct))
     G.add_nodes_from(node_data)
     edge_data = []
     for (source, target), weight in edges.items():
@@ -211,7 +219,7 @@ def create_networkx_graph(nodes: dict, edges: dict) -> nx.Graph:
     for node, weighted_degree in degree_view:
         G.nodes[node]["weighted_degree"] = weighted_degree
     community_sets = nx.algorithms.community.louvain_communities(
-        G, weight="weight", seed=0
+        G, weight="weight", seed=0, resolution=0.75
     )
     for i, community_set in enumerate(community_sets):
         for node in community_set:
@@ -225,7 +233,7 @@ def write_graphml(G: nx.Graph) -> None:
     Args:
         G (nx.Graph): The graph.
     """
-    output_dir = Path.cwd()
+    output_dir = Path.cwd() / 'output'
     timestamp = datetime.now().strftime("%Y-%m-%d-%H%M")
     fname = output_dir / f"openflourishing_{timestamp}_network.graphml"
     nx.readwrite.write_graphml(G, fname)
@@ -247,7 +255,7 @@ def write_json(G: nx.Graph) -> None:
         G (nx.Graph): The network.
     """
     dct = G_to_dict(G)
-    output_dir = Path.cwd()
+    output_dir = Path.cwd() / 'output'
     timestamp = datetime.now().strftime("%Y-%m-%d-%H%M")
     fname = output_dir / f"openflourishing_{timestamp}_network.json"
     with open(fname, "w") as f:

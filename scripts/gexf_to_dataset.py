@@ -1,6 +1,8 @@
 import xml.etree.ElementTree as ET
 import json
 from random import random
+from flourishing_network.core import convert
+from pathlib import Path
 
 # Load and parse the XML file
 tree = ET.parse("./scripts/network.gexf")
@@ -56,7 +58,7 @@ for node in root.findall(".//gexf:node", ns):
         "x": x,
         "y": y,
         "score": float(attr_values.get("weighted_degree", 0.0)),
-        "scales": get_dummy_scales(),
+        "submissions": attr_values.get("submissions", "").split(';'),
     })
 
 # Parse edges
@@ -66,6 +68,10 @@ for edge in root.findall(".//gexf:edge", ns):
     target = edge.attrib["target"]
     weight = float(edge.attrib.get("weight", 1.0))
     edges.append([source, target]) #  , weight])
+
+root = Path(__file__).parent.parent / "flourishing_network"
+fname = root / "data" / "submissions.csv"
+submissions = convert.csv_to_submissions(fname)
 
 # Combine into final dataset
 dataset = {
@@ -99,7 +105,8 @@ dataset = {
         { "key": "Technology", "image": "technology.svg" },
         { "key": "Tool", "image": "tool.svg" },
         { "key": "unknown", "image": "unknown.svg" }
-    ]
+    ],
+    "submissions": submissions,
 }
 
 # Write to dataset.json

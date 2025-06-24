@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import json
 import json.tool
+from pathlib import Path
 
 import pandas as pd
 
 
-def json_to_links(fname: str) -> list[dict]:
+def json_to_links(fname: str | Path) -> list[dict]:
     """Read a JSON file to link data.
 
     Args:
@@ -22,7 +23,7 @@ def json_to_links(fname: str) -> list[dict]:
     return links
 
 
-def csv_to_links(fname: str) -> list[dict]:
+def csv_to_links(fname: str | Path) -> list[dict]:
     """Read a CSV file to link data.
 
     Args:
@@ -40,6 +41,26 @@ def csv_to_links(fname: str) -> list[dict]:
         if pd.isna(link["parent"]):
             link["parent"] = None
     return links
+
+
+def csv_to_submissions(fname: str | Path) -> list[dict]:
+    """Read a CSV file to submissions data.
+
+    Args:
+        fname (str): The file path.
+
+    Returns:
+        list[dict]: A list of submission dictionaries.
+    """
+
+    submissions_df = pd.read_csv(fname, index_col=None)
+    submissions_df = submissions_df.fillna('none')
+    submissions_df.columns = ['key', 'datetime', 'contributor_id',
+                           'citation', 'scale_name', 'scale_abbr', 'doi',
+                           'issn', 'isbn', 'context', 'notes']
+    records = submissions_df.to_dict("records")
+    submissions = {d['key']: d  for d in records}
+    return submissions
 
 
 def links_to_terms(links: list[dict]) -> set:
@@ -67,7 +88,7 @@ def links_to_text(links: list[dict], fname: str) -> None:
         fname (str): The file path.
     """
     links = [dct.copy() for dct in links]
-    rows = []
+    rows: list[str] = []
     submission_id = None
     for link in links:
         if link['submission_id'] != submission_id:
