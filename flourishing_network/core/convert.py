@@ -59,8 +59,7 @@ def csv_to_submissions(fname: str | Path) -> list[dict]:
                            'citation', 'scale_name', 'scale_abbr', 'doi',
                            'issn', 'isbn', 'context', 'notes']
     records = submissions_df.to_dict("records")
-    submissions = {d['key']: d  for d in records}
-    return submissions
+    return records
 
 
 def links_to_terms(links: list[dict]) -> set:
