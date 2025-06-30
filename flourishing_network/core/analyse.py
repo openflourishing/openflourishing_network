@@ -7,13 +7,19 @@ import json
 import json.tool
 from datetime import datetime
 from pathlib import Path
+import random
+from scipy.sparse import csr_matrix
 
 import networkx as nx
+from sknetwork.clustering import Leiden
+import distinctipy
 import numpy as np
 import pandas as pd
 
-from . import convert
+from . import convert, datasets
 
+random.seed(0)
+np.random.seed(0)
 
 def as_int(value: float) -> int:
     """Deal with nan values for integers.
@@ -191,7 +197,9 @@ def make_edges_df(G: nx.Graph) -> pd.DataFrame:
     return df
 
 
-def create_csvs(output_dir: Path, G: nx.Graph, suffix: str = "") -> None:
+def write_csvs(
+    output_dir: Path, timestamp: str, G: nx.Graph, suffix: str = ""
+) -> None:
     """Output csvs of the network.
 
     Args:
@@ -199,7 +207,6 @@ def create_csvs(output_dir: Path, G: nx.Graph, suffix: str = "") -> None:
     """
     nodes_df = make_nodes_df(G)
     edges_df = make_edges_df(G)
-    timestamp = datetime.now().strftime("%Y-%m-%d-%H%M")
     fname = output_dir / (
         f"openflourishing_{timestamp}" + suffix + "_csv_nodes.csv"
     )
@@ -236,40 +243,111 @@ def create_networkx_graph(nodes: dict, edges: dict) -> nx.Graph:
     for (source, target), weight in edges.items():
         edge_data.append((source, target, {"weight": weight}))
     G.add_edges_from(edge_data)
-    degree_view = G.degree(weight="weight")
-    for node, weighted_degree in degree_view:
-        G.nodes[node]["weighted_degree"] = weighted_degree
+    for node_id, attrs in G.nodes.items():
+        attrs["viz"] = {}
     return G
 
 
-def detect_communities(G, seed, resolution):
-    community_sets = nx.algorithms.community.louvain_communities(
-        G, weight="weight", seed=seed, resolution=resolution
+def add_weighted_degree(G: nx.Graph):
+    degree_view = G.degree(weight="weight")
+    for node, weighted_degree in degree_view:
+        G.nodes[node]["weighted_degree"] = weighted_degree
+
+
+def add_community_labels(G, communities):
+    degree_view = G.degree(weight="weight")
+    communities_out = [dct.copy() for dct in communities]
+    for community in communities_out:
+        degrees = [(node, degree_view[node]) for node in community["nodes"]]
+        degrees.sort(reverse=True, key=lambda t: t[1])
+        name = G.nodes[degrees[0][0]]["term"].strip("*")
+        if len(degrees) >= 2:
+            name += ", " + G.nodes[degrees[1][0]]["term"].strip("*")
+        if len(degrees) >= 3:
+            name += ", " + G.nodes[degrees[2][0]]["term"].strip("*")
+        if len(degrees) >= 4:
+            name += " and " + G.nodes[degrees[3][0]]["term"].strip("*")
+        community["label"] = name
+    return communities_out
+
+
+def to_color_rgb(color, luminance=255*0.7):
+    r, g, b = color
+    return int(r * luminance), int(g * luminance), int(b * luminance)
+
+
+def to_color_hex(color):
+    r, g, b = to_color_rgb(color)
+    return f"#{r:02X}{g:02X}{b:02X}"
+
+
+def add_community_colors(communities):
+    N = len(communities)
+    communities_out = [dct.copy() for dct in communities]
+    colors = distinctipy.get_colors(
+        N, pastel_factor=0.5, rng=0
     )
-    for i, community_set in enumerate(community_sets):
-        for node in community_set:
-            G.nodes[node]["community"] = i
+    for i, community in enumerate(communities_out):
+        community["color_rgb"] = to_color_rgb(colors[i])
+        community["color"] = to_color_hex(colors[i])
+    return communities_out
 
 
-def write_graphml(output_dir: Path, G: nx.Graph) -> None:
+def detect_communities(G, seed, resolution):
+    node_list = G.nodes()
+    adjacency = csr_matrix(nx.to_scipy_sparse_array(G, node_list))
+    leiden = Leiden(resolution=resolution, random_state=seed)
+    labels = leiden.fit_predict(adjacency)
+    communities = {}
+    for node_id, label in zip(node_list, labels, strict=True):
+        if label not in communities:
+            communities[label] = set([node_id])
+        else:
+            communities[label].add(node_id)
+    communities = list(communities.values())
+    communities.sort(reverse=True, key=lambda s: len(s))
+    communities = [{"key": i, "nodes": s} for i, s in enumerate(communities)]
+    communities = add_community_labels(G, communities)
+    communities = add_community_colors(communities)
+    return communities
+
+
+def assign_communities(G, communities):
+    for community in communities:
+        for node_id in community["nodes"]:
+            G.nodes[node_id]["community"] = community["key"]
+            r, g, b = community["color_rgb"]
+            color = {"r": r, "g": g, "b": b}
+            G.nodes[node_id]["viz"]["color"] = color
+
+
+def detect_and_assign_communities(G):
+    communities = detect_communities(G, seed=0, resolution=0.8)
+    assign_communities(G, communities)
+    return communities
+
+
+def write_graphml(output_dir: Path, timestamp: str, G: nx.Graph) -> None:
     """Write the graph to a GraphML file.
 
     Args:
         G (nx.Graph): The graph.
+
+    Warning:
+        Currently not compatable with dictionary node data! Do not use.
     """
-    timestamp = datetime.now().strftime("%Y-%m-%d-%H%M")
     fname = output_dir / f"openflourishing_{timestamp}_network.graphml"
     nx.readwrite.write_graphml(G, fname)
 
 
-def write_gexf(output_dir: Path, G: nx.Graph, suffix="") -> None:
+def write_gexf(
+    output_dir: Path, timestamp: str, G: nx.Graph, suffix=""
+) -> None:
     """Write the graph to a GraphML file.
 
     Args:
         G (nx.Graph): The graph.
     """
-    output_dir = Path.cwd() / "output"
-    timestamp = datetime.now().strftime("%Y-%m-%d-%H%M")
     fname = output_dir / (
         f"openflourishing_{timestamp}_network" + suffix + ".gexf"
     )
@@ -285,19 +363,35 @@ def G_to_dict(G: nx.Graph) -> dict:
     return nx.readwrite.json_graph.node_link_data(G, edges="links")
 
 
-def write_json(output_dir: Path, G: nx.Graph, suffix: str = "") -> None:
+def write_json(
+    output_dir: Path, timestamp: str, G: nx.Graph, suffix: str = ""
+) -> None:
     """Write the network to json.
 
     Args:
         G (nx.Graph): The network.
     """
     dct = G_to_dict(G)
-    timestamp = datetime.now().strftime("%Y-%m-%d-%H%M")
     fname = output_dir / (
         f"openflourishing_{timestamp}_network" + suffix + ".json"
     )
     with open(fname, "w") as f:
-        json.dump(dct, f, indent=4)
+        json.dump(dct, f, indent=2)
+
+
+def write_dataset(
+    output_dir: Path,
+    timestamp: str,
+    G: nx.Graph,
+    communities: list,
+    suffix: str = "",
+):
+    fname = output_dir / (
+        f"openflourishing_{timestamp}_network_dataset" + suffix + ".json"
+    )
+    dataset = datasets.get_dataset(G, communities)
+    with open(fname, "w") as f:
+        json.dump(dataset, f, indent=2)
 
 
 def reorient(pos, G):
@@ -340,7 +434,7 @@ def layout(G: nx.Graph) -> None:
         scaling_ratio=5.0,
         node_size=sizes,
         weight="weight",
-        max_iter=300,
+        max_iter=500,
         jitter_tolerance=100.0,
         seed=0,
     )
@@ -351,7 +445,7 @@ def layout(G: nx.Graph) -> None:
         scaling_ratio=5.0,
         node_size=sizes,
         weight="weight",
-        max_iter=300,
+        max_iter=500,
         jitter_tolerance=10.0,
     )
     print("1x...")
@@ -361,7 +455,7 @@ def layout(G: nx.Graph) -> None:
         scaling_ratio=5.0,
         node_size=sizes,
         weight="weight",
-        max_iter=500,
+        max_iter=1000,
         jitter_tolerance=1.0,
     )
     print("reorienting...")
@@ -377,7 +471,12 @@ def layout(G: nx.Graph) -> None:
     nx.set_node_attributes(G, viz, name="viz")
 
 
-def filtered_edges(G) -> nx.Graph:
+def remove_isolated(G):
+    isolated_nodes = list(nx.isolates(G))
+    G.remove_nodes_from(isolated_nodes)
+
+
+def filter_edges(G) -> nx.Graph:
     edge_weights = np.array(list(nx.get_edge_attributes(G, "weight").values()))
     cutoff = np.quantile(edge_weights, 0.5)
 
@@ -386,18 +485,34 @@ def filtered_edges(G) -> nx.Graph:
 
     view = nx.subgraph_view(G, filter_edge=filter_edge)
     graph = nx.Graph(view)
+    remove_isolated(graph)
     return graph
 
 
-def remove_isolated(G):
-    isolated_nodes = list(nx.isolates(G))
-    G.remove_nodes_from(isolated_nodes)
+def create_outputs(output_dir, timestamp, G, communities, prefix=""):
+    write_gexf(output_dir, timestamp, G, prefix)
+    write_json(output_dir, timestamp, G, prefix)
+    write_csvs(output_dir, timestamp, G, prefix)
+    write_dataset(output_dir, timestamp, G, communities, prefix)
+
+
+def process_network(G):
+    root = Path(__file__).parent.parent.parent
+    output_dir = root / "output"
+    timestamp = datetime.now().strftime("%Y-%m-%d-%H%M")
+    add_weighted_degree(G)
+    # layout(G)
+    # communities = detect_and_assign_communities(G)
+    # create_outputs(output_dir, timestamp, G, communities, "")
+    G_filt = filter_edges(G)
+    layout(G_filt)
+    communities = detect_and_assign_communities(G_filt)
+    create_outputs(output_dir, timestamp, G_filt, communities, "_filtered")
 
 
 def run() -> None:
     """Run the analysis."""
     root = Path(__file__).parent.parent
-    output_dir = Path.cwd() / "output"
     fname = root / "data" / "links.csv"
     links = convert.csv_to_links(fname)
     links = convert.clean_link_terms(links)
@@ -405,17 +520,4 @@ def run() -> None:
     remove_stopwords(terms, links)
     nodes, edges = create_network_data(terms, links)
     G = create_networkx_graph(nodes, edges)
-    detect_communities(G, seed=0, resolution=0.75)
-    # layout(G)
-    # write_graphml(output_dir, G, "")
-    # write_gexf(output_dir, G, "")
-    # write_json(output_dir, G, "")
-    # create_csvs(output_dir, G, "")
-
-    G_filt = filtered_edges(G)
-    remove_isolated(G_filt)
-    detect_communities(G_filt, seed=0, resolution=0.75)
-    layout(G_filt)
-    write_gexf(output_dir, G_filt, "_filtered")
-    write_json(output_dir, G_filt, "_filtered")
-    create_csvs(output_dir, G_filt, "_filtered")
+    process_network(G)
