@@ -1,5 +1,6 @@
 import distinctipy
 
+
 def to_color_rgb(color, luminance=255):
     r, g, b = color
     return int(r * luminance), int(g * luminance), int(b * luminance)

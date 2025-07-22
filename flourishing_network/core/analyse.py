@@ -5,21 +5,37 @@ from __future__ import annotations
 import itertools
 import json
 import json.tool
+import random
 from datetime import datetime
 from pathlib import Path
-import random
-from scipy.sparse import csr_matrix
 
-import networkx as nx
-from sknetwork.clustering import Leiden
 import distinctipy
+import networkx as nx
 import numpy as np
 import pandas as pd
+from scipy.sparse import csr_matrix
+from sknetwork.clustering import Leiden
 
 from . import convert, datasets
 
 random.seed(0)
 np.random.seed(0)
+
+COMMUNITY_COLOR_PREFERENCES = {
+"Relationships": "#3B47FC",
+"Physical health": "#55FDEC",
+"Happiness": "#6F3B36",
+"Self-efficacy": "#FA3CD4",
+"Coping": "#38E837",
+"Spirituality": "#F5FCFE",
+"Meaning": "#9E98AE",
+"Optimism": "#FD463D",
+"Work": "#376291",
+"Autonomy": "#9AF974",
+"Security": "#749B3C",
+"Economy": "#33AADF",
+}
+
 
 def as_int(value: float) -> int:
     """Deal with nan values for integers.
@@ -55,13 +71,25 @@ def default_link(submission_id: int, parent: int | None) -> dict:
 
 
 def not_na(value: float) -> float | None:
-    """Check for NA values."""
+    """Check for NA values.
+
+    Args:
+        value: The value to check for NA.
+
+    Returns:
+        The original value if not NA, None otherwise.
+    """
     if pd.isna(value):
         return None
     return value
 
 
-def get_stopwords():
+def get_stopwords() -> list[str]:
+    """Get the list of stopwords from the data file.
+
+    Returns:
+        List of stopwords to filter out from terms.
+    """
     root = Path(__file__).parent.parent
     fname = root / "data" / "stopwords.json"
     with open(fname) as f:
@@ -106,7 +134,9 @@ def _add_edge(
     edges[(source, target)] += weight
 
 
-def create_network_data(terms: set, links: list[dict]) -> tuple[dict, dict]:
+def create_network_data(
+    terms: set, links: list[dict]
+) -> tuple[dict, dict]:
     """Create the network data from terms and links.
 
     Args:
@@ -119,9 +149,10 @@ def create_network_data(terms: set, links: list[dict]) -> tuple[dict, dict]:
             - edges (dict): Dictionary of edges keyed by (source, target)
                 tuples, with weights as values.
     """
+    sorted_terms = sorted(list(terms))
     nodes = {
         t: {"term": t, "index": i + 1, "submissions": set()}
-        for i, t in enumerate(terms)
+        for i, t in enumerate(sorted_terms)
     }
     edges = {}
     stopwords = get_stopwords()
@@ -137,7 +168,8 @@ def create_network_data(terms: set, links: list[dict]) -> tuple[dict, dict]:
                     nodes[term]["index"],
                     20.0 / len(linked),
                 )
-                nodes[term]["submissions"].add(submission_id)
+                if dct['relationship'] == 'includes':
+                    nodes[term]["submissions"].add(submission_id)
         combinations = list(itertools.combinations(linked, 2))
         for source, target in combinations:
             _add_edge(
@@ -146,9 +178,9 @@ def create_network_data(terms: set, links: list[dict]) -> tuple[dict, dict]:
                 nodes[target]["index"],
                 10 / len(combinations),
             )
-            nodes[source]["submissions"].add(submission_id)
-            nodes[target]["submissions"].add(submission_id)
-
+            if dct['relationship'] == 'includes':
+                nodes[source]["submissions"].add(submission_id)
+                nodes[target]["submissions"].add(submission_id)
     # combinations = itertools.combinations(terms, 2)
     # for source, target in combinations:
     #     _add_edge(edges, nodes[source], nodes[target], 0.01)
@@ -200,10 +232,13 @@ def make_edges_df(G: nx.Graph) -> pd.DataFrame:
 def write_csvs(
     output_dir: Path, timestamp: str, G: nx.Graph, suffix: str = ""
 ) -> None:
-    """Output csvs of the network.
+    """Output CSV files of the network.
 
     Args:
-        G (nx.Graph): The graph.
+        output_dir: Directory to write the CSV files to.
+        timestamp: Timestamp string to include in filenames.
+        G: The networkx graph to export.
+        suffix: Optional suffix to add to filenames.
     """
     nodes_df = make_nodes_df(G)
     edges_df = make_edges_df(G)
@@ -248,13 +283,27 @@ def create_networkx_graph(nodes: dict, edges: dict) -> nx.Graph:
     return G
 
 
-def add_weighted_degree(G: nx.Graph):
+def add_weighted_degree(G: nx.Graph) -> None:
+    """Add weighted degree attribute to all nodes in the graph.
+
+    Args:
+        G: The networkx graph to modify in-place.
+    """
     degree_view = G.degree(weight="weight")
     for node, weighted_degree in degree_view:
         G.nodes[node]["weighted_degree"] = weighted_degree
 
 
-def add_community_labels(G, communities):
+def add_community_labels(G: nx.Graph, communities: list[dict]) -> list[dict]:
+    """Add descriptive labels to communities based on highest-degree nodes.
+
+    Args:
+        G: The networkx graph containing node data.
+        communities: List of community dictionaries with 'nodes' key.
+
+    Returns:
+        List of community dictionaries with added 'label' keys.
+    """
     degree_view = G.degree(weight="weight")
     communities_out = [dct.copy() for dct in communities]
     for community in communities_out:
@@ -271,30 +320,132 @@ def add_community_labels(G, communities):
     return communities_out
 
 
-def to_color_rgb(color, luminance=255*0.7):
+def hex_to_normalized_rgb(hex_color: str) -> tuple[float, float, float]:
+    """
+    Convert a hex color string to a normalized RGB tuple (values between 0.0 and 1.0).
+
+    Args:
+        hex_color (str): Hex color string, e.g., '#FF5733' or 'FF5733'
+
+    Returns:
+        tuple: Normalized RGB tuple, e.g., (1.0, 0.341, 0.2)
+    """
+    hex_color = hex_color.lstrip('#')
+    if len(hex_color) != 6:
+        raise ValueError("Hex color must be 6 characters long.")
+    
+    r = int(hex_color[0:2], 16) / 255.0
+    g = int(hex_color[2:4], 16) / 255.0
+    b = int(hex_color[4:6], 16) / 255.0
+
+    return (r, g, b)
+
+
+def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
+    """
+    Convert a hex color string to an RGB tuple with integer values (0–255).
+
+    Args:
+        hex_color (str): Hex color string, e.g., '#FF5733' or 'FF5733'
+
+    Returns:
+        tuple: RGB tuple, e.g., (255, 87, 51)
+    """
+    hex_color = hex_color.lstrip('#')
+    if len(hex_color) != 6:
+        raise ValueError("Hex color must be 6 characters long.")
+    
+    r = int(hex_color[0:2], 16)
+    g = int(hex_color[2:4], 16)
+    b = int(hex_color[4:6], 16)
+
+    return (r, g, b)
+
+
+def to_color_rgb(
+    color: tuple[float, float, float], luminance: float = 255 * 0.7
+) -> tuple[int, int, int]:
+    """Convert a normalized color tuple to RGB integers with luminance scaling.
+
+    Args:
+        color: Tuple of (r, g, b) values in range [0, 1].
+        luminance: Scaling factor for brightness.
+
+    Returns:
+        Tuple of (r, g, b) integer values.
+    """
     r, g, b = color
     return int(r * luminance), int(g * luminance), int(b * luminance)
 
 
-def to_color_hex(color):
-    r, g, b = to_color_rgb(color)
+def rgb_color_to_hex(color: tuple[int, int, int]) -> str:
+    """Convert a color tuple to hexadecimal color string.
+
+    Args:
+        color: Tuple of (r, g, b) values in range [0, 255].
+
+    Returns:
+        Hexadecimal color string in format '#RRGGBB'.
+    """
+    r, g, b = color
     return f"#{r:02X}{g:02X}{b:02X}"
 
+def normalised_rgb_color_to_hex(color: tuple[float, float, float]) -> str:
+    """Convert a normalized color tuple to hexadecimal color string.
 
-def add_community_colors(communities):
+    Args:
+        color: Tuple of (r, g, b) values in range [0, 1].
+
+    Returns:
+        Hexadecimal color string in format '#RRGGBB'.
+    """
+    return rgb_color_to_hex(to_color_rgb(color))
+
+
+def add_community_colors(communities: list[dict]) -> list[dict]:
+    """Add color information to communities using distinct colors.
+
+    Args:
+        communities: List of community dictionaries to add colors to.
+
+    Returns:
+        List of community dictionaries with added color fields.
+    """
     N = len(communities)
     communities_out = [dct.copy() for dct in communities]
-    colors = distinctipy.get_colors(
-        N, pastel_factor=0.5, rng=0
-    )
-    for i, community in enumerate(communities_out):
-        community["color_rgb"] = to_color_rgb(colors[i])
-        community["color"] = to_color_hex(colors[i])
+    colors = distinctipy.get_colors(N, pastel_factor=0.5, rng=0)
+    rgbs = [to_color_rgb(color) for color in colors]
+    preferences = COMMUNITY_COLOR_PREFERENCES.copy()
+    for community in communities_out:
+        found = False
+        for pref in preferences:
+            if pref in community["label"]:
+                color_rgb = hex_to_rgb(preferences[pref])
+                if color_rgb in rgbs:
+                    rgbs.remove(color_rgb)
+                found = True
+                break
+        if not found:
+            color_rgb = rgbs.pop(0)
+        community["color_rgb"] = to_color_rgb(color_rgb)
+        community["color"] = rgb_color_to_hex(color_rgb)
     return communities_out
 
 
-def detect_communities(G, seed, resolution):
-    node_list = G.nodes()
+def detect_communities(
+    G: nx.Graph, seed: int, resolution: float
+) -> list[dict]:
+    """Detect communities in the graph using Leiden algorithm.
+
+    Args:
+        G: The networkx graph to analyze.
+        seed: Random seed for reproducible results.
+        resolution: Resolution parameter for community detection.
+
+    Returns:
+        List of community dictionaries with nodes, keys, labels, and colors.
+    """
+    node_list = sorted(G.nodes())
     adjacency = csr_matrix(nx.to_scipy_sparse_array(G, node_list))
     leiden = Leiden(resolution=resolution, random_state=seed)
     labels = leiden.fit_predict(adjacency)
@@ -312,7 +463,13 @@ def detect_communities(G, seed, resolution):
     return communities
 
 
-def assign_communities(G, communities):
+def assign_communities(G: nx.Graph, communities: list[dict]) -> None:
+    """Assign community information to graph nodes.
+
+    Args:
+        G: The networkx graph to modify in-place.
+        communities: List of community dictionaries with node assignments.
+    """
     for community in communities:
         for node_id in community["nodes"]:
             G.nodes[node_id]["community"] = community["key"]
@@ -321,7 +478,15 @@ def assign_communities(G, communities):
             G.nodes[node_id]["viz"]["color"] = color
 
 
-def detect_and_assign_communities(G):
+def detect_and_assign_communities(G: nx.Graph) -> list[dict]:
+    """Detect communities and assign them to graph nodes.
+
+    Args:
+        G: The networkx graph to analyze and modify.
+
+    Returns:
+        List of community dictionaries with assignments.
+    """
     communities = detect_communities(G, seed=0, resolution=0.8)
     assign_communities(G, communities)
     return communities
@@ -331,7 +496,9 @@ def write_graphml(output_dir: Path, timestamp: str, G: nx.Graph) -> None:
     """Write the graph to a GraphML file.
 
     Args:
-        G (nx.Graph): The graph.
+        output_dir: Directory to write the GraphML file to.
+        timestamp: Timestamp string to include in filename.
+        G: The networkx graph to export.
 
     Warning:
         Currently not compatable with dictionary node data! Do not use.
@@ -341,12 +508,15 @@ def write_graphml(output_dir: Path, timestamp: str, G: nx.Graph) -> None:
 
 
 def write_gexf(
-    output_dir: Path, timestamp: str, G: nx.Graph, suffix=""
+    output_dir: Path, timestamp: str, G: nx.Graph, suffix: str = ""
 ) -> None:
-    """Write the graph to a GraphML file.
+    """Write the graph to a GEXF file.
 
     Args:
-        G (nx.Graph): The graph.
+        output_dir: Directory to write the GEXF file to.
+        timestamp: Timestamp string to include in filename.
+        G: The networkx graph to export.
+        suffix: Optional suffix to add to filename.
     """
     fname = output_dir / (
         f"openflourishing_{timestamp}_network" + suffix + ".gexf"
@@ -366,10 +536,13 @@ def G_to_dict(G: nx.Graph) -> dict:
 def write_json(
     output_dir: Path, timestamp: str, G: nx.Graph, suffix: str = ""
 ) -> None:
-    """Write the network to json.
+    """Write the network to JSON format.
 
     Args:
-        G (nx.Graph): The network.
+        output_dir: Directory to write the JSON file to.
+        timestamp: Timestamp string to include in filename.
+        G: The networkx graph to export.
+        suffix: Optional suffix to add to filename.
     """
     dct = G_to_dict(G)
     fname = output_dir / (
@@ -383,9 +556,18 @@ def write_dataset(
     output_dir: Path,
     timestamp: str,
     G: nx.Graph,
-    communities: list,
+    communities: list[dict],
     suffix: str = "",
-):
+) -> None:
+    """Write the dataset JSON file for the network.
+
+    Args:
+        output_dir: Directory to write the dataset file to.
+        timestamp: Timestamp string to include in filename.
+        G: The networkx graph.
+        communities: List of community dictionaries.
+        suffix: Optional suffix to add to filename.
+    """
     fname = output_dir / (
         f"openflourishing_{timestamp}_network_dataset" + suffix + ".json"
     )
@@ -394,7 +576,16 @@ def write_dataset(
         json.dump(dataset, f, indent=2)
 
 
-def reorient(pos, G):
+def reorient(pos: dict[int, np.ndarray], G: nx.Graph) -> dict[int, np.ndarray]:
+    """Reorient the graph layout for better visualization.
+
+    Args:
+        pos (dict[int, np.ndarray]): Dictionary of node positions.
+        G (nx.Graph): The graph.
+
+    Returns:
+        dict[int, np.ndarray]: Reoriented node positions.
+    """
     term_mapping = nx.get_node_attributes(G, "term")
     inv_mapping = {v: k for k, v in term_mapping.items()}
     centre = pos[inv_mapping["Happiness"]]
@@ -414,7 +605,12 @@ def reorient(pos, G):
 
 
 def layout(G: nx.Graph) -> None:
-    degrees = nx.get_node_attributes(G, "weighted_degree", default=5.0)
+    """Apply a layout algorithm to the graph and update node attributes.
+
+    Args:
+        G (nx.Graph): The graph to layout.
+    """
+    degrees = nx.get_node_attributes(G, "weighted_degree")
     vals = np.array(list(degrees.values()))
     size_min = 1.0
     size_max = 15.0
@@ -427,14 +623,14 @@ def layout(G: nx.Graph) -> None:
         for node_id, degree in degrees.items()
     }
     # use stepwise strategy to improve convergence speed
-    print("Laying out Graph...")
+    print(f"Laying out Graph with {len(vals)} nodes...")
     print("100x...")
     pos = nx.forceatlas2_layout(
         G,
         scaling_ratio=5.0,
         node_size=sizes,
         weight="weight",
-        max_iter=500,
+        max_iter=1, # 400,
         jitter_tolerance=100.0,
         seed=0,
     )
@@ -445,7 +641,7 @@ def layout(G: nx.Graph) -> None:
         scaling_ratio=5.0,
         node_size=sizes,
         weight="weight",
-        max_iter=500,
+        max_iter=1, #800,
         jitter_tolerance=10.0,
     )
     print("1x...")
@@ -455,7 +651,7 @@ def layout(G: nx.Graph) -> None:
         scaling_ratio=5.0,
         node_size=sizes,
         weight="weight",
-        max_iter=1000,
+        max_iter=1, #1200,
         jitter_tolerance=1.0,
     )
     print("reorienting...")
@@ -471,12 +667,25 @@ def layout(G: nx.Graph) -> None:
     nx.set_node_attributes(G, viz, name="viz")
 
 
-def remove_isolated(G):
-    isolated_nodes = list(nx.isolates(G))
-    G.remove_nodes_from(isolated_nodes)
+def remove_isolated(G: nx.Graph) -> nx.Graph:
+    """Remove isolated nodes from the graph.
+
+    Args:
+        G (nx.Graph): The graph from which isolated nodes will be removed.
+    """
+    largest_cc = max(nx.connected_components(G), key=len)
+    return G.subgraph(largest_cc).copy()
 
 
-def filter_edges(G) -> nx.Graph:
+def filter_edges(G: nx.Graph) -> nx.Graph:
+    """Filter edges in the graph based on weight and remove isolated nodes.
+
+    Args:
+        G (nx.Graph): The input graph.
+
+    Returns:
+        nx.Graph: A new graph with filtered edges and isolated nodes removed.
+    """
     edge_weights = np.array(list(nx.get_edge_attributes(G, "weight").values()))
     cutoff = np.quantile(edge_weights, 0.5)
 
@@ -485,18 +694,86 @@ def filter_edges(G) -> nx.Graph:
 
     view = nx.subgraph_view(G, filter_edge=filter_edge)
     graph = nx.Graph(view)
-    remove_isolated(graph)
-    return graph
+    largest_connected_graph = remove_isolated(graph)
+    return largest_connected_graph
 
 
-def create_outputs(output_dir, timestamp, G, communities, prefix=""):
+def create_outputs(
+    output_dir: Path,
+    timestamp: str,
+    G: nx.Graph,
+    communities: list[dict],
+    prefix: str = "",
+) -> None:
+    """Create output files for the network analysis.
+
+    Args:
+        output_dir (Path): Directory to write the output files to.
+        timestamp (str): Timestamp string to include in filenames.
+        G (nx.Graph): The networkx graph to export.
+        communities (list[dict]): List of community dictionaries.
+        prefix (str, optional): Optional prefix to add to filenames.
+    """
     write_gexf(output_dir, timestamp, G, prefix)
     write_json(output_dir, timestamp, G, prefix)
     write_csvs(output_dir, timestamp, G, prefix)
     write_dataset(output_dir, timestamp, G, communities, prefix)
 
 
-def process_network(G):
+
+def analyse_submissions(G: nx.Graph) -> dict:
+    """Calculate which communities each submission includes.
+
+    Args:
+        G (nx.Graph): The networkx graph containing node data.
+
+    Returns:
+        dict: Dictionary mapping submission IDs to community counts.
+        
+    """
+    submission_communities = {}
+    communities = set()
+    node_data = G.nodes(data=True)
+    for _, node_dct in node_data:
+        communities.add(node_dct.get("community", -1))
+    communities = {c: 0 for c in communities if c != -1}
+    for _, node_dct in node_data:
+        submissions = node_dct["submissions"]
+        community = node_dct["community"]
+        if len(submissions) == 0:
+            continue
+        submission_ids = submissions.split(";")
+        for submission_id in submission_ids:
+            submission_id = int(submission_id)
+            if submission_id not in submission_communities:
+                submission_communities[submission_id] = communities.copy()
+            submission_communities[submission_id][community] += 1
+    return submission_communities
+
+
+def output_submission_communities(
+    output_dir: Path, timestamp: str, submission_communities: dict
+) -> None:
+    """Output the submission communities to a JSON file.
+
+    
+    Args:
+        output_dir (Path): Directory to write the JSON file to.
+        timestamp (str): Timestamp string to include in filename.
+        submission_communities (dict): Dictionary of submission communities.
+    """
+    df = pd.DataFrame.from_records(submission_communities).T
+    fname = (output_dir /
+             f"openflourishing_{timestamp}_submission_communities.csv")
+    df.to_csv(fname, index=False)
+
+def process_network(G: nx.Graph) -> None:
+    """Process the network by filtering edges, detecting communities, and
+    creating outputs.
+
+    Args:
+        G (nx.Graph): The input graph to process.
+    """
     root = Path(__file__).parent.parent.parent
     output_dir = root / "output"
     timestamp = datetime.now().strftime("%Y-%m-%d-%H%M")
@@ -508,7 +785,8 @@ def process_network(G):
     layout(G_filt)
     communities = detect_and_assign_communities(G_filt)
     create_outputs(output_dir, timestamp, G_filt, communities, "_filtered")
-
+    submission_communities = analyse_submissions(G_filt)
+    output_submission_communities(output_dir, timestamp, submission_communities)
 
 def run() -> None:
     """Run the analysis."""

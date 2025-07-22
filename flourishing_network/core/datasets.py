@@ -1,6 +1,8 @@
 
-import networkx as nx
 from pathlib import Path
+
+import networkx as nx
+
 from . import convert
 
 
