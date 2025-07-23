@@ -138,9 +138,7 @@ def _add_edge(
     edges[(source, target)] += weight
 
 
-def create_network_data(
-    terms: dict, links: list[dict]
-) -> tuple[dict, dict]:
+def create_network_data(terms: dict, links: list[dict]) -> tuple[dict, dict]:
     """Create the network data from terms and links.
 
     Args:
@@ -172,7 +170,7 @@ def create_network_data(
                     nodes[term]["index"],
                     20.0 / len(linked),
                 )
-                if dct['relationship'] == 'includes':
+                if dct["relationship"] == "includes":
                     nodes[term]["submissions"].add(submission_id)
         combinations = list(itertools.combinations(linked, 2))
         for source, target in combinations:
@@ -182,7 +180,7 @@ def create_network_data(
                 nodes[target]["index"],
                 10 / len(combinations),
             )
-            if dct['relationship'] == 'includes':
+            if dct["relationship"] == "includes":
                 nodes[source]["submissions"].add(submission_id)
                 nodes[target]["submissions"].add(submission_id)
     # combinations = itertools.combinations(terms, 2)
@@ -335,10 +333,10 @@ def hex_to_normalized_rgb(hex_color: str) -> tuple[float, float, float]:
     Returns:
         tuple: Normalized RGB tuple, e.g., (1.0, 0.341, 0.2)
     """
-    hex_color = hex_color.lstrip('#')
+    hex_color = hex_color.lstrip("#")
     if len(hex_color) != 6:
         raise ValueError("Hex color must be 6 characters long.")
-    
+
     r = int(hex_color[0:2], 16) / 255.0
     g = int(hex_color[2:4], 16) / 255.0
     b = int(hex_color[4:6], 16) / 255.0
@@ -356,10 +354,10 @@ def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
     Returns:
         tuple: RGB tuple, e.g., (255, 87, 51)
     """
-    hex_color = hex_color.lstrip('#')
+    hex_color = hex_color.lstrip("#")
     if len(hex_color) != 6:
         raise ValueError("Hex color must be 6 characters long.")
-    
+
     r = int(hex_color[0:2], 16)
     g = int(hex_color[2:4], 16)
     b = int(hex_color[4:6], 16)
@@ -394,6 +392,7 @@ def rgb_color_to_hex(color: tuple[int, int, int]) -> str:
     """
     r, g, b = color
     return f"#{r:02X}{g:02X}{b:02X}"
+
 
 def normalised_rgb_color_to_hex(color: tuple[float, float, float]) -> str:
     """Convert a normalized color tuple to hexadecimal color string.
@@ -452,7 +451,9 @@ def detect_communities(
     """
     node_list = sorted(G.nodes())
     adjacency = csr_matrix(nx.to_scipy_sparse_array(G, node_list))
-    leiden = Leiden(resolution=resolution, random_state=seed)
+    leiden = Leiden(
+        resolution=resolution, random_state=seed, shuffle_nodes=True
+    )
     labels = leiden.fit_predict(adjacency)
     communities = {}
     for node_id, label in zip(node_list, labels, strict=True):
@@ -492,7 +493,7 @@ def detect_and_assign_communities(G: nx.Graph) -> list[dict]:
     Returns:
         List of community dictionaries with assignments.
     """
-    communities = detect_communities(G, seed=0, resolution=0.9)
+    communities = detect_communities(G, seed=1, resolution=1.0)
     assign_communities(G, communities)
     return communities
 
@@ -725,7 +726,6 @@ def create_outputs(
     write_dataset(output_dir, timestamp, G, communities, prefix)
 
 
-
 def analyse_submissions(G: nx.Graph) -> dict:
     """Calculate which communities each submission includes.
 
@@ -734,7 +734,7 @@ def analyse_submissions(G: nx.Graph) -> dict:
 
     Returns:
         dict: Dictionary mapping submission IDs to community counts.
-        
+
     """
     submission_communities = {}
     communities = set()
@@ -761,16 +761,18 @@ def output_submission_communities(
 ) -> None:
     """Output the submission communities to a JSON file.
 
-    
+
     Args:
         output_dir (Path): Directory to write the JSON file to.
         timestamp (str): Timestamp string to include in filename.
         submission_communities (dict): Dictionary of submission communities.
     """
     df = pd.DataFrame.from_records(submission_communities).T
-    fname = (output_dir /
-             f"openflourishing_{timestamp}_submission_communities.csv")
+    fname = (
+        output_dir / f"openflourishing_{timestamp}_submission_communities.csv"
+    )
     df.to_csv(fname, index=False)
+
 
 def process_network(G: nx.Graph) -> None:
     """Process the network by filtering edges, detecting communities, and
@@ -791,7 +793,10 @@ def process_network(G: nx.Graph) -> None:
     communities = detect_and_assign_communities(G_filt)
     create_outputs(output_dir, timestamp, G_filt, communities, "_filtered")
     submission_communities = analyse_submissions(G_filt)
-    output_submission_communities(output_dir, timestamp, submission_communities)
+    output_submission_communities(
+        output_dir, timestamp, submission_communities
+    )
+
 
 def run() -> None:
     """Run the analysis."""
