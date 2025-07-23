@@ -484,6 +484,52 @@ def assign_communities(G: nx.Graph, communities: list[dict]) -> None:
             G.nodes[node_id]["viz"]["color"] = color
 
 
+def statistical_communities(
+    G: nx.Graph, seed: int = 0, resolution: float = 1.0, n: int = 300
+) -> list[dict]:
+    """Assign statistical communities to graph nodes.
+
+    Args:
+        G: The networkx graph to modify in-place.
+    """
+    counts = {k: {} for k in G.nodes}
+    for i in range(n):
+        print(f"Detecting communities: iteration {i + 1}/{n}")
+        communities = detect_communities(
+            G, seed=seed + i * n, resolution=resolution
+        )
+        for community in communities:
+            for node_id in community["nodes"]:
+                dct = counts[node_id]
+                label = community["label"].split(",")[0].strip()
+                if label not in dct:
+                    dct[label] = 1
+                else:
+                    dct[label] += 1
+    highests = {}
+    for node_id, dct in counts.items():
+        if len(dct) == 0:
+            continue
+        # Get the community with the highest count
+        # If there are multiple, just take the first one
+        highest_community = max(dct, key=dct.get)
+        highests[node_id] = highest_community
+    # Create community dictionaries
+    communities = {}
+    for node_id, com_label in highests.items():
+        if com_label not in communities:
+            communities[com_label] = set([node_id])
+        else:
+            communities[com_label].add(node_id)
+    communities = list(communities.values())
+    communities.sort(reverse=True, key=lambda s: len(s))
+    # Add the other information
+    communities = [{"key": i, "nodes": s} for i, s in enumerate(communities)]
+    communities = add_community_labels(G, communities)
+    communities = add_community_colors(communities)
+    return communities
+
+
 def detect_and_assign_communities(G: nx.Graph) -> list[dict]:
     """Detect communities and assign them to graph nodes.
 
@@ -493,7 +539,7 @@ def detect_and_assign_communities(G: nx.Graph) -> list[dict]:
     Returns:
         List of community dictionaries with assignments.
     """
-    communities = detect_communities(G, seed=1, resolution=1.0)
+    communities = statistical_communities(G, seed=2, resolution=1.0)
     assign_communities(G, communities)
     return communities
 
