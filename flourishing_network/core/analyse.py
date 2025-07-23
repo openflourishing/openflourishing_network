@@ -22,18 +22,18 @@ random.seed(0)
 np.random.seed(0)
 
 COMMUNITY_COLOR_PREFERENCES = {
-"Relationships": "#3B47FC",
-"Physical health": "#55FDEC",
-"Happiness": "#6F3B36",
-"Self-efficacy": "#FA3CD4",
-"Coping": "#38E837",
-"Spirituality": "#F5FCFE",
-"Meaning": "#9E98AE",
-"Optimism": "#FD463D",
-"Work": "#376291",
-"Autonomy": "#9AF974",
-"Security": "#749B3C",
-"Economy": "#33AADF",
+    "Relationships": "#5B57D8",
+    "Physical health": "#74E45E",
+    "Happiness": "#F06059",
+    "Self-efficacy": "#5CD2FC",
+    "Coping": "#E98AFD",
+    "Spirituality": "#FCD26D",
+    "Meaning": "#717864",
+    "Optimism": "#ADB9B2",
+    "Work": "#908FFB",
+    "Autonomy": "#B2B055",
+    "Security": "#AAF4EB",
+    "Economy": "#57A2B1",
 }
 
 
@@ -97,7 +97,7 @@ def get_stopwords() -> list[str]:
     return stopwords
 
 
-def remove_stopwords(terms: set, links: list[dict]) -> None:
+def remove_stopwords(terms: dict, links: list[dict]) -> None:
     """Remove stopwords in terms and links.
 
     Args:
@@ -105,11 +105,15 @@ def remove_stopwords(terms: set, links: list[dict]) -> None:
         links (list[dict]): The list of link dictionaries.
     """
     stopwords = get_stopwords()
-    terms.difference_update(stopwords)
+    for stopword in stopwords:
+        if stopword in terms:
+            del terms[stopword]
     for dct in links:
         if dct["parent"] in stopwords:
             dct["parent"] = None
-        dct["linked"].difference_update(stopwords)
+        for term in dct["linked"].copy():
+            if term in stopwords:
+                dct["linked"].remove(term)
 
 
 def _add_edge(
@@ -135,7 +139,7 @@ def _add_edge(
 
 
 def create_network_data(
-    terms: set, links: list[dict]
+    terms: dict, links: list[dict]
 ) -> tuple[dict, dict]:
     """Create the network data from terms and links.
 
@@ -149,7 +153,7 @@ def create_network_data(
             - edges (dict): Dictionary of edges keyed by (source, target)
                 tuples, with weights as values.
     """
-    sorted_terms = sorted(list(terms))
+    sorted_terms = list(terms.keys())
     nodes = {
         t: {"term": t, "index": i + 1, "submissions": set()}
         for i, t in enumerate(sorted_terms)
@@ -185,7 +189,8 @@ def create_network_data(
     # for source, target in combinations:
     #     _add_edge(edges, nodes[source], nodes[target], 0.01)
     for node_dct in nodes.values():
-        node_dct["submissions"] = ";".join(node_dct["submissions"])
+        subs_str = ";".join(sorted(list(node_dct["submissions"])))
+        node_dct["submissions"] = subs_str
     return nodes, edges
 
 
@@ -427,7 +432,7 @@ def add_community_colors(communities: list[dict]) -> list[dict]:
                 break
         if not found:
             color_rgb = rgbs.pop(0)
-        community["color_rgb"] = to_color_rgb(color_rgb)
+        community["color_rgb"] = color_rgb
         community["color"] = rgb_color_to_hex(color_rgb)
     return communities_out
 
@@ -487,7 +492,7 @@ def detect_and_assign_communities(G: nx.Graph) -> list[dict]:
     Returns:
         List of community dictionaries with assignments.
     """
-    communities = detect_communities(G, seed=0, resolution=0.8)
+    communities = detect_communities(G, seed=0, resolution=0.9)
     assign_communities(G, communities)
     return communities
 
@@ -630,7 +635,7 @@ def layout(G: nx.Graph) -> None:
         scaling_ratio=5.0,
         node_size=sizes,
         weight="weight",
-        max_iter=1, # 400,
+        max_iter=400,
         jitter_tolerance=100.0,
         seed=0,
     )
@@ -641,7 +646,7 @@ def layout(G: nx.Graph) -> None:
         scaling_ratio=5.0,
         node_size=sizes,
         weight="weight",
-        max_iter=1, #800,
+        max_iter=800,
         jitter_tolerance=10.0,
     )
     print("1x...")
@@ -651,7 +656,7 @@ def layout(G: nx.Graph) -> None:
         scaling_ratio=5.0,
         node_size=sizes,
         weight="weight",
-        max_iter=1, #1200,
+        max_iter=1200,
         jitter_tolerance=1.0,
     )
     print("reorienting...")

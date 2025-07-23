@@ -36,7 +36,7 @@ def csv_to_links(fname: str | Path) -> list[dict]:
     for link in links:
         linked = link["linked"].split(",")
         linked = [term.strip() for term in linked]
-        link["linked"] = set(linked)
+        link["linked"] = linked
         link["submission_id"] = int(link["submission_id"])
         if pd.isna(link["parent"]):
             link["parent"] = None
@@ -63,7 +63,7 @@ def csv_to_submissions(fname: str | Path) -> list[dict]:
     return records
 
 
-def links_to_terms(links: list[dict]) -> set:
+def links_to_terms(links: list[dict]) -> dict:
     """Return a set of all terms in the links.
 
     Args:
@@ -72,11 +72,13 @@ def links_to_terms(links: list[dict]) -> set:
     Returns:
         set: All terms in the link dictionaries.
     """
-    terms = set()
+    terms = {}
     for link in links:
-        if link["parent"] is not None:
-            terms.add(link["parent"])
-        terms.update(link["linked"])
+        if link["parent"] is not None and link["parent"] not in terms:
+            terms[link["parent"]] = True
+        for term in link["linked"]:
+            if term not in terms:
+                terms[term] = True
     return terms
 
 
@@ -163,7 +165,7 @@ def clean_link_terms(links: list[dict]) -> list[dict]:
         dct = {}
         for key, val in link.items():
             if key == 'linked':
-                dct[key] = set([clean_term(t) for t in val])
+                dct[key] = [clean_term(t) for t in val]
             elif key == 'parent':
                 dct[key] = None if val is None else clean_term(val)
             else:
