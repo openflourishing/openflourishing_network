@@ -30,7 +30,7 @@ def parse_edges(G: nx.Graph):
     edges = []
     for source, target, attrs in G.edges(data=True):
         weight = float(attrs.get("weight", 1.0))
-        edges.append([str(source), str(target)]) #  , weight])
+        edges.append([str(source), str(target), weight])
     return edges
 
 def parse_communities(communities):
