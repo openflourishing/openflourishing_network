@@ -682,7 +682,7 @@ def layout(G: nx.Graph) -> None:
         scaling_ratio=5.0,
         node_size=sizes,
         weight="weight",
-        max_iter=400,
+        max_iter=1, #400,
         jitter_tolerance=100.0,
         seed=0,
     )
@@ -693,7 +693,7 @@ def layout(G: nx.Graph) -> None:
         scaling_ratio=5.0,
         node_size=sizes,
         weight="weight",
-        max_iter=800,
+        max_iter=1, #800,
         jitter_tolerance=10.0,
     )
     print("1x...")
@@ -703,7 +703,7 @@ def layout(G: nx.Graph) -> None:
         scaling_ratio=5.0,
         node_size=sizes,
         weight="weight",
-        max_iter=1200,
+        max_iter=1, #1200,
         jitter_tolerance=1.0,
     )
     print("reorienting...")

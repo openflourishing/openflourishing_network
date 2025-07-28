@@ -183,7 +183,7 @@ I made progress on my plans.,"Plans, Progress",Experiences,Past,"Agree-disagree,
 I felt more happy than depressed.,Depression-happiness,Experiences,Past,"Agree-disagree, Never-Often",1,General,1,14/06/2025,y,y
 I had opportunities that mattered to me.,Opportunity,Experiences,Past,"Agree-disagree, Never-Often",1,General,1,14/06/2025,y,y
 I faced difficulties that tested me.,Adversity,Experiences,Past,"Agree-disagree, Never-Often",1,General,1,14/06/2025,y,y
-I felt energetic.,Energetic,Experiences,Past,"Agree-disagree, Never-Often",1,General,1,14/06/2025,y,y
+I felt energetic.,"Energetic, Vitality",Experiences,Past,"Agree-disagree, Never-Often",1,General,1,14/06/2025,y,y
 I was able to make my own choices.,Choice,Experiences,Past,"Agree-disagree, Never-Often",1,General,1,14/06/2025,y,y
 My social life was rewarding.,Social health,Experiences,Past,"Agree-disagree, Never-Often",1,General,1,14/06/2025,y,y
 I felt tired.,Tiredness,Experiences,Past,"Agree-disagree, Never-Often",-1,General,1,14/06/2025,y,y
@@ -11214,3 +11214,33 @@ A runny nose makes social or work situations uncomfortable.,Runny nose,Circumsta
 Loss of appetite affects my nutrition and energy levels.,Loss of appetite,Circumstances,Present,"Agree-disagree, Not true-very true",,General,1,14/06/2025,y,
 An upset stomach limits my activities and comfort.,Upset stomach,Circumstances,Present,"Agree-disagree, Not true-very true",,General,1,14/06/2025,y,
 Jaw pain interferes with eating or speaking comfortably.,Jaw pain,Circumstances,Present,"Agree-disagree, Not true-very true",,General,1,14/06/2025,y,
+I felt supported by people around me.,Social support,Experiences,Past,"Agree-disagree, Never-Often",1,General,1,22/07/2025,,y
+My physical health caused me difficulty.,Physical health,Experiences,Past,"Agree-disagree, Never-Often",-1,General,1,22/07/2025,,y
+I was interested in what I was doing.,Interest,Experiences,Past,"Agree-disagree, Never-Often",1,General,1,22/07/2025,,y
+I solved challenges well.,Problem-solving,Experiences,Past,"Agree-disagree, Never-Often",1,General,1,22/07/2025,,y
+My difficulties felt overwhelming.,Difficulty,Experiences,Past,"Agree-disagree, Never-Often",-1,General,1,22/07/2025,,y
+I felt skilled in what I did.,Skill,Experiences,Past,"Agree-disagree, Never-Often",1,General,1,22/07/2025,,y
+I could not achieve as much as I wanted to.,Achievement,Experiences,Past,"Agree-disagree, Never-Often",-1,General,1,22/07/2025,,y
+I could choose how to go about things.,Choice,Experiences,Past,"Agree-disagree, Never-Often",1,General,1,22/07/2025,,y
+I could not make the choices I wanted.,Choice,Experiences,Past,"Agree-disagree, Never-Often",-1,General,1,22/07/2025,,y
+What I did felt worthwhile.,Worthwhileness,Experiences,Past,"Agree-disagree, Never-Often",1,General,1,22/07/2025,,y
+My efforts felt meaningless.,Meaninglessness,Experiences,Past,"Agree-disagree, Never-Often",-1,General,1,22/07/2025,,y
+I looked forward to the future.,Optimism,Experiences,Past,"Agree-disagree, Never-Often",1,General,1,22/07/2025,,y
+I felt hopeless.,Hopelessness,Experiences,Past,"Agree-disagree, Never-Often",-1,General,1,22/07/2025,,y
+I felt good about my mix of daily activities.,Daily activities,Experiences,Past,"Agree-disagree, Never-Often",1,General,1,22/07/2025,,y
+My activities felt out of balance.,Activities,Experiences,Past,"Agree-disagree, Never-Often",-1,General,1,22/07/2025,,y
+I have strong and supportive relationships.,Relationships,Circumstances,Present,"Agree-disagree, Not true-very true",1,General,1,22/07/2025,,y
+There are few people who support me.,Social support,Circumstances,Present,"Agree-disagree, Not true-very true",-1,General,1,22/07/2025,,y
+My surroundings uplift me.,Vitality,Circumstances,Present,"Agree-disagree, Not true-very true",1,General,1,22/07/2025,,y
+I am physically unhealthy compared to my peers.,Vitality,Circumstances,Present,"Agree-disagree, Not true-very true",-1,General,1,22/07/2025,,y
+My circumstances are close to ideal.,Satisfaction,Circumstances,Present,"Agree-disagree, Not true-very true",1,General,1,22/07/2025,,y
+I am often put under pressure.,Pressure,Circumstances,Present,"Agree-disagree, Not true-very true",-1,General,1,22/07/2025,,y
+I have the resources to cope with challenges.,"Coping, Challenge",Circumstances,Present,"Agree-disagree, Not true-very true",1,General,1,22/07/2025,,y
+It is hard for me to find help.,Help,Circumstances,Present,"Agree-disagree, Not true-very true",-1,General,1,22/07/2025,,y
+I have many opportunities to learn.,Learning,Circumstances,Present,"Agree-disagree, Not true-very true",1,General,1,22/07/2025,,y
+My situation gives me a lot of freedom.,Freedom,Circumstances,Present,"Agree-disagree, Not true-very true",1,General,1,22/07/2025,,y
+My situation limits my choices.,Choice,Circumstances,Present,"Agree-disagree, Not true-very true",-1,General,1,22/07/2025,,y
+I see how my efforts impact others.,Impact,Circumstances,Present,"Agree-disagree, Not true-very true",1,General,1,22/07/2025,,y
+I have upcoming events to look forward to.,Hope,Circumstances,Present,"Agree-disagree, Not true-very true",1,General,1,22/07/2025,,y
+My roles provide me with interesting tasks.,Interest,Circumstances,Present,"Agree-disagree, Not true-very true",1,General,1,22/07/2025,,y
+My role requires activities that are not enjoyable.,Enjoyment,Circumstances,Present,"Agree-disagree, Not true-very true",-1,General,1,22/07/2025,,y
