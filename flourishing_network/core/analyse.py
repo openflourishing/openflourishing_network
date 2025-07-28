@@ -16,7 +16,7 @@ import pandas as pd
 from scipy.sparse import csr_matrix
 from sknetwork.clustering import Leiden
 
-from . import convert, datasets
+from . import convert, datasets, item_pool
 
 random.seed(0)
 np.random.seed(0)
@@ -842,6 +842,8 @@ def process_network(G: nx.Graph) -> None:
     output_submission_communities(
         output_dir, timestamp, submission_communities
     )
+    item_pool_fname = output_dir / f"openflourishing_{timestamp}_item_pool.csv"
+    item_pool.make_item_pool_json(item_pool_fname)
 
 
 def run() -> None:
@@ -855,3 +857,4 @@ def run() -> None:
     nodes, edges = create_network_data(terms, links)
     G = create_networkx_graph(nodes, edges)
     process_network(G)
+    
