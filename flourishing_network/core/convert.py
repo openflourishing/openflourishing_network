@@ -54,10 +54,10 @@ def csv_to_submissions(fname: str | Path) -> list[dict]:
     """
     submissions_df = pd.read_csv(fname, index_col=None)
     submissions_df = submissions_df.fillna('none')
-    submissions_df.columns = ['key', 'datetime', 'contributor_id',
+    submissions_df.columns = ['key', 'datetime', 'contributor_ids',
                            'citation', 'scale_name', 'scale_abbr', 'doi',
                            'issn', 'isbn', 'context', 'notes', 'language',
-                           'type',
+                           'type', 'license'
                            ]
     records = submissions_df.to_dict("records")
     return records

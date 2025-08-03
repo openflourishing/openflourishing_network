@@ -675,35 +675,36 @@ def layout(G: nx.Graph) -> None:
         for node_id, degree in degrees.items()
     }
     # use stepwise strategy to improve convergence speed
-    print(f"Laying out Graph with {len(vals)} nodes...")
+    print(
+        f"Laying out Graph with {G.number_of_nodes()} nodes " 
+        + f"and {G.number_of_edges()} edges..."
+    )
     print("100x...")
     pos = nx.forceatlas2_layout(
         G,
-        scaling_ratio=5.0,
-        node_size=sizes,
+        scaling_ratio=4.0,
         weight="weight",
-        max_iter=1, #400,
+        max_iter=400,
         jitter_tolerance=100.0,
-        seed=0,
+        seed=1,
     )
     print("10x...")
     pos = nx.forceatlas2_layout(
         G,
         pos=pos,
-        scaling_ratio=5.0,
-        node_size=sizes,
+        scaling_ratio=4.0,
         weight="weight",
-        max_iter=1, #800,
+        max_iter=800,
         jitter_tolerance=10.0,
     )
     print("1x...")
     pos = nx.forceatlas2_layout(
         G,
         pos=pos,
-        scaling_ratio=5.0,
+        scaling_ratio=4.0,
         node_size=sizes,
         weight="weight",
-        max_iter=1, #1200,
+        max_iter=1200,
         jitter_tolerance=1.0,
     )
     print("reorienting...")
@@ -740,6 +741,7 @@ def filter_edges(G: nx.Graph) -> nx.Graph:
     """
     edge_weights = np.array(list(nx.get_edge_attributes(G, "weight").values()))
     cutoff = np.quantile(edge_weights, 0.5)
+    print(f"50th quartile edge weight is {cutoff:.3f}")
 
     def filter_edge(source: str, target: str) -> bool:
         return G[source][target]["weight"] > cutoff
@@ -842,7 +844,7 @@ def process_network(G: nx.Graph) -> None:
     output_submission_communities(
         output_dir, timestamp, submission_communities
     )
-    item_pool_fname = output_dir / f"openflourishing_{timestamp}_item_pool.csv"
+    item_pool_fname = output_dir / f"openflourishing_{timestamp}_item_pool.json"
     item_pool.make_item_pool_json(item_pool_fname)
 
 

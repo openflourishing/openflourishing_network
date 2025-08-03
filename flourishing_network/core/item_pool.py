@@ -18,8 +18,7 @@ def get_data_frame():
         "response_categories",
         "direction",
         "context",
-        "contributor_id",
-        "date",
+        "item_submission_id",
         "ai_drafted",
         "edited",
     ]
